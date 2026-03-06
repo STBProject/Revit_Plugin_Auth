@@ -161,98 +161,117 @@
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
   <script>
-    const SUPABASE_URL = 'https://hgkrqjcszfstnjqsiqnb.supabase.co';
-    const SUPABASE_KEY = 'sb_publishable_16jZ8VIk_UHpgOZYOykYAA_a53gEyaw';
+    (function() {
+      var SUPABASE_URL = 'https://hgkrqjcszfstnjqsiqnb.supabase.co';
+      var SUPABASE_KEY = 'sb_publishable_16jZ8VIk_UHpgOZYOykYAA_a53gEyaw';
 
-    const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+      var resetForm = document.getElementById('resetForm');
+      var successBlock = document.getElementById('successBlock');
+      var noTokenBlock = document.getElementById('noTokenBlock');
+      var formError = document.getElementById('formError');
+      var submitBtn = document.getElementById('submitBtn');
+      var subtitle = document.getElementById('subtitle');
 
-    const resetForm = document.getElementById('resetForm');
-    const successBlock = document.getElementById('successBlock');
-    const noTokenBlock = document.getElementById('noTokenBlock');
-    const formError = document.getElementById('formError');
-    const submitBtn = document.getElementById('submitBtn');
-    const subtitle = document.getElementById('subtitle');
+      var client = null;
 
-    // Check if we have a recovery token in the URL
-    async function init() {
-      // Supabase sends: #access_token=...&type=recovery
-      const hash = window.location.hash.substring(1);
-      const params = new URLSearchParams(hash);
-      const type = params.get('type');
-      const accessToken = params.get('access_token');
-      const refreshToken = params.get('refresh_token');
-
-      if (type !== 'recovery' || !accessToken) {
-        resetForm.classList.add('hidden');
-        noTokenBlock.classList.remove('hidden');
-        subtitle.textContent = 'Ошибка';
+      // Try to init Supabase client
+      try {
+        client = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+      } catch (e) {
+        showError('Ошибка загрузки. Обновите страницу.');
         return;
       }
 
-      // Set the session from the recovery token
-      const { error } = await supabase.auth.setSession({
-        access_token: accessToken,
-        refresh_token: refreshToken || '',
+      function showError(msg) {
+        formError.textContent = msg;
+        formError.classList.remove('hidden');
+      }
+
+      // Toggle password visibility
+      document.querySelectorAll('.toggle-password').forEach(function(btn) {
+        btn.addEventListener('click', function() {
+          var input = document.getElementById(this.dataset.target);
+          var isHidden = input.type === 'password';
+          input.type = isHidden ? 'text' : 'password';
+          this.querySelector('.icon-show').classList.toggle('hidden', isHidden);
+          this.querySelector('.icon-hide').classList.toggle('hidden', !isHidden);
+        });
       });
 
-      if (error) {
-        resetForm.classList.add('hidden');
-        noTokenBlock.classList.remove('hidden');
-        subtitle.textContent = 'Ошибка';
-        return;
-      }
-    }
+      // Form submit — validation first, then Supabase
+      resetForm.addEventListener('submit', function(e) {
+        e.preventDefault();
+        formError.classList.add('hidden');
 
-    resetForm.addEventListener('submit', async (e) => {
-      e.preventDefault();
-      formError.classList.add('hidden');
+        var pw = document.getElementById('password').value;
+        var pw2 = document.getElementById('confirmPassword').value;
 
-      const pw = document.getElementById('password').value;
-      const confirm = document.getElementById('confirmPassword').value;
+        if (pw.length < 6) {
+          showError('Пароль должен быть не менее 6 символов');
+          return;
+        }
 
-      if (pw.length < 6) {
-        formError.textContent = 'Пароль должен быть не менее 6 символов';
-        formError.classList.remove('hidden');
-        return;
-      }
+        if (pw !== pw2) {
+          showError('Пароли не совпадают');
+          return;
+        }
 
-      if (pw !== confirm) {
-        formError.textContent = 'Пароли не совпадают';
-        formError.classList.remove('hidden');
-        return;
-      }
+        if (!client) {
+          showError('Ошибка подключения. Обновите страницу.');
+          return;
+        }
 
-      submitBtn.disabled = true;
-      submitBtn.textContent = 'Сохранение...';
+        submitBtn.disabled = true;
+        submitBtn.textContent = 'Сохранение...';
 
-      const { error } = await supabase.auth.updateUser({ password: pw });
-
-      if (error) {
-        formError.textContent = error.message || 'Ошибка при смене пароля';
-        formError.classList.remove('hidden');
-        submitBtn.disabled = false;
-        submitBtn.textContent = 'Сохранить новый пароль';
-        return;
-      }
-
-      resetForm.classList.add('hidden');
-      successBlock.classList.remove('hidden');
-      subtitle.textContent = 'Готово';
-    });
-
-    init();
-  </script>
-  <script>
-    // Toggle password visibility (separate script to work even if Supabase CDN fails)
-    document.querySelectorAll('.toggle-password').forEach(function(btn) {
-      btn.addEventListener('click', function() {
-        var input = document.getElementById(this.dataset.target);
-        var isHidden = input.type === 'password';
-        input.type = isHidden ? 'text' : 'password';
-        this.querySelector('.icon-show').classList.toggle('hidden', isHidden);
-        this.querySelector('.icon-hide').classList.toggle('hidden', !isHidden);
+        client.auth.updateUser({ password: pw }).then(function(result) {
+          if (result.error) {
+            showError(result.error.message || 'Ошибка при смене пароля');
+            submitBtn.disabled = false;
+            submitBtn.textContent = 'Сохранить новый пароль';
+            return;
+          }
+          resetForm.classList.add('hidden');
+          successBlock.classList.remove('hidden');
+          subtitle.textContent = 'Готово';
+        }).catch(function(err) {
+          showError('Ошибка сети. Попробуйте ещё раз.');
+          submitBtn.disabled = false;
+          submitBtn.textContent = 'Сохранить новый пароль';
+        });
       });
-    });
+
+      // Init — check recovery token
+      (function init() {
+        var hash = window.location.hash.substring(1);
+        var params = new URLSearchParams(hash);
+        var type = params.get('type');
+        var accessToken = params.get('access_token');
+        var refreshToken = params.get('refresh_token');
+
+        if (type !== 'recovery' || !accessToken) {
+          resetForm.classList.add('hidden');
+          noTokenBlock.classList.remove('hidden');
+          subtitle.textContent = 'Ошибка';
+          return;
+        }
+
+        client.auth.setSession({
+          access_token: accessToken,
+          refresh_token: refreshToken || ''
+        }).then(function(result) {
+          if (result.error) {
+            resetForm.classList.add('hidden');
+            noTokenBlock.classList.remove('hidden');
+            subtitle.textContent = 'Ошибка';
+          }
+        }).catch(function() {
+          resetForm.classList.add('hidden');
+          noTokenBlock.classList.remove('hidden');
+          subtitle.textContent = 'Ошибка';
+        });
+      })();
+    })();
   </script>
 </body>
 </html>
