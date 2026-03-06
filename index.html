@@ -240,18 +240,19 @@
       subtitle.textContent = 'Готово';
     });
 
-    // Toggle password visibility
-    document.querySelectorAll('.toggle-password').forEach(btn => {
-      btn.addEventListener('click', () => {
-        const input = document.getElementById(btn.dataset.target);
-        const isHidden = input.type === 'password';
+    init();
+  </script>
+  <script>
+    // Toggle password visibility (separate script to work even if Supabase CDN fails)
+    document.querySelectorAll('.toggle-password').forEach(function(btn) {
+      btn.addEventListener('click', function() {
+        var input = document.getElementById(this.dataset.target);
+        var isHidden = input.type === 'password';
         input.type = isHidden ? 'text' : 'password';
-        btn.querySelector('.icon-show').classList.toggle('hidden', isHidden);
-        btn.querySelector('.icon-hide').classList.toggle('hidden', !isHidden);
+        this.querySelector('.icon-show').classList.toggle('hidden', isHidden);
+        this.querySelector('.icon-hide').classList.toggle('hidden', !isHidden);
       });
     });
-
-    init();
   </script>
 </body>
 </html>
