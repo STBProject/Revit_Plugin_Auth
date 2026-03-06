@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>СТБ Проект — Сброс пароля</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: #2e3440;
+      color: #d9d9d9;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+
+    .card {
+      width: 100%;
+      max-width: 400px;
+      background: #3b4453;
+      border: 1px solid rgba(209, 222, 238, 0.2);
+      border-radius: 6px;
+      padding: 32px 24px;
+    }
+
+    .header { text-align: center; margin-bottom: 28px; }
+    .header h1 { font-size: 20px; font-weight: 600; color: #0696d7; margin-bottom: 6px; }
+    .header p { font-size: 13px; color: #cccccc; }
+
+    .field { display: flex; flex-direction: column; gap: 4px; margin-bottom: 16px; }
+    .field label { font-size: 12px; color: #cccccc; }
+
+    .field input {
+      padding: 8px 10px;
+      background: #2e3440;
+      border: 1px solid rgba(209, 222, 238, 0.2);
+      border-radius: 2px;
+      color: #d9d9d9;
+      font-size: 13px;
+      outline: none;
+      transition: border-color 0.15s;
+      width: 100%;
+    }
+    .field input:focus { border-color: #0696d7; }
+    .field input::placeholder { color: #8691a1; }
+
+    .btn {
+      width: 100%;
+      padding: 9px;
+      background: #0696d7;
+      color: #fff;
+      border: none;
+      border-radius: 2px;
+      font-size: 13px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: background 0.15s;
+    }
+    .btn:hover:not(:disabled) { background: #38abdf; }
+    .btn:disabled { opacity: 0.6; cursor: default; }
+
+    .message { font-size: 12px; margin-bottom: 12px; }
+    .error { color: #e74c3c; }
+    .success { color: #27ae60; }
+
+    .hidden { display: none; }
+
+    .password-req {
+      font-size: 11px;
+      color: #8691a1;
+      margin-top: 4px;
+    }
+
+    .password-wrapper {
+      position: relative;
+    }
+    .password-wrapper input {
+      padding-right: 34px;
+    }
+    .toggle-password {
+      position: absolute;
+      right: 6px;
+      top: 50%;
+      transform: translateY(-50%);
+      background: none;
+      border: none;
+      cursor: pointer;
+      color: #8691a1;
+      padding: 4px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: color 0.15s;
+    }
+    .toggle-password:hover {
+      color: #cccccc;
+    }
+    /* Hide native password reveal (Edge/WebView2) */
+    .field input::-ms-reveal {
+      display: none;
+    }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <div class="header">
+      <h1>СТБ Проект</h1>
+      <p id="subtitle">Введите новый пароль</p>
+    </div>
+
+    <!-- Password reset form -->
+    <form id="resetForm">
+      <div class="field">
+        <label>Новый пароль</label>
+        <div class="password-wrapper">
+          <input type="password" id="password" placeholder="Минимум 6 символов" autocomplete="new-password" />
+          <button type="button" class="toggle-password" data-target="password" tabindex="-1">
+            <svg class="icon-show" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>
+            </svg>
+            <svg class="icon-hide hidden" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/>
+            </svg>
+          </button>
+        </div>
+        <span class="password-req">Минимум 6 символов</span>
+      </div>
+      <div class="field">
+        <label>Подтвердите пароль</label>
+        <div class="password-wrapper">
+          <input type="password" id="confirmPassword" placeholder="Повторите пароль" autocomplete="new-password" />
+          <button type="button" class="toggle-password" data-target="confirmPassword" tabindex="-1">
+            <svg class="icon-show" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>
+            </svg>
+            <svg class="icon-hide hidden" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/>
+            </svg>
+          </button>
+        </div>
+      </div>
+      <p id="formError" class="message error hidden"></p>
+      <button type="submit" class="btn" id="submitBtn">Сохранить новый пароль</button>
+    </form>
+
+    <!-- Success message -->
+    <div id="successBlock" class="hidden">
+      <p class="message success">Пароль успешно изменён. Теперь вы можете войти в Revit с новым паролем.</p>
+    </div>
+
+    <!-- Error: no token -->
+    <div id="noTokenBlock" class="hidden">
+      <p class="message error">Ссылка недействительна или устарела. Запросите сброс пароля повторно через личный кабинет в Revit.</p>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+  <script>
+    const SUPABASE_URL = 'https://hgkrqjcszfstnjqsiqnb.supabase.co';
+    const SUPABASE_KEY = 'sb_publishable_16jZ8VIk_UHpgOZYOykYAA_a53gEyaw';
+
+    const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+    const resetForm = document.getElementById('resetForm');
+    const successBlock = document.getElementById('successBlock');
+    const noTokenBlock = document.getElementById('noTokenBlock');
+    const formError = document.getElementById('formError');
+    const submitBtn = document.getElementById('submitBtn');
+    const subtitle = document.getElementById('subtitle');
+
+    // Check if we have a recovery token in the URL
+    async function init() {
+      // Supabase sends: #access_token=...&type=recovery
+      const hash = window.location.hash.substring(1);
+      const params = new URLSearchParams(hash);
+      const type = params.get('type');
+      const accessToken = params.get('access_token');
+      const refreshToken = params.get('refresh_token');
+
+      if (type !== 'recovery' || !accessToken) {
+        resetForm.classList.add('hidden');
+        noTokenBlock.classList.remove('hidden');
+        subtitle.textContent = 'Ошибка';
+        return;
+      }
+
+      // Set the session from the recovery token
+      const { error } = await supabase.auth.setSession({
+        access_token: accessToken,
+        refresh_token: refreshToken || '',
+      });
+
+      if (error) {
+        resetForm.classList.add('hidden');
+        noTokenBlock.classList.remove('hidden');
+        subtitle.textContent = 'Ошибка';
+        return;
+      }
+    }
+
+    resetForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      formError.classList.add('hidden');
+
+      const pw = document.getElementById('password').value;
+      const confirm = document.getElementById('confirmPassword').value;
+
+      if (pw.length < 6) {
+        formError.textContent = 'Пароль должен быть не менее 6 символов';
+        formError.classList.remove('hidden');
+        return;
+      }
+
+      if (pw !== confirm) {
+        formError.textContent = 'Пароли не совпадают';
+        formError.classList.remove('hidden');
+        return;
+      }
+
+      submitBtn.disabled = true;
+      submitBtn.textContent = 'Сохранение...';
+
+      const { error } = await supabase.auth.updateUser({ password: pw });
+
+      if (error) {
+        formError.textContent = error.message || 'Ошибка при смене пароля';
+        formError.classList.remove('hidden');
+        submitBtn.disabled = false;
+        submitBtn.textContent = 'Сохранить новый пароль';
+        return;
+      }
+
+      resetForm.classList.add('hidden');
+      successBlock.classList.remove('hidden');
+      subtitle.textContent = 'Готово';
+    });
+
+    // Toggle password visibility
+    document.querySelectorAll('.toggle-password').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const input = document.getElementById(btn.dataset.target);
+        const isHidden = input.type === 'password';
+        input.type = isHidden ? 'text' : 'password';
+        btn.querySelector('.icon-show').classList.toggle('hidden', isHidden);
+        btn.querySelector('.icon-hide').classList.toggle('hidden', !isHidden);
+      });
+    });
+
+    init();
+  </script>
+</body>
+</html>
